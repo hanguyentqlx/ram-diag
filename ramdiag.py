@@ -47,6 +47,8 @@ def parse_dmi(text):
             "part": fields.get("Part Number", "").strip(),
             "manufacturer": fields.get("Manufacturer", "?"),
             "manufacturer_id": fields.get("Module Manufacturer ID", ""),
+            "serial_number": fields.get("Serial Number", ""),
+            "module_product_id": fields.get("Module Product ID", ""),
             "capacity_gb": capacity,
             "type": fields.get("Type", "?"),
             "form_factor": fields.get("Form Factor", "?"),
@@ -68,6 +70,33 @@ def parse_dmi(text):
         fields[key.strip()] = value.strip()
     finish()
     return modules
+
+
+PLACEHOLDER_SERIALS = {
+    "", "NOT SPECIFIED", "UNKNOWN", "NONE", "N/A", "NOT PROVIDED",
+    "TO BE FILLED BY O.E.M.", "00000000", "FFFFFFFF", "0000000000000000",
+}
+
+def usable_serial(serial):
+    """Firmware-provided serial, not a manufacturer authentication token."""
+    value = str(serial or "").strip()
+    cleaned = normalize(value).replace("-", "")
+    if cleaned in {normalize(v).replace("-", "") for v in PLACEHOLDER_SERIALS}:
+        return ""
+    if not re.fullmatch(r"[A-Z0-9-]{4,64}", value, re.I):
+        return ""
+    return value
+
+def duplicate_serial_groups(modules):
+    """Return duplicate serials for distinct reported slots; only a warning."""
+    from collections import defaultdict
+    by_serial = defaultdict(list)
+    for module in modules:
+        serial = usable_serial(module.get("serial_number"))
+        if serial:
+            by_serial[normalize(serial)].append(str(module.get("slot") or "?"))
+    return {serial: slots for serial, slots in by_serial.items()
+            if len(set(slots)) > 1}
 
 def load_catalog():
     db = {}
@@ -218,6 +247,11 @@ def scan(fixture=None):
             source = "No supported manufacturer ID or matching catalog"
         print(f"[{i}] Khe {m['slot']} | {brand} | {m['capacity_gb']:g} GB | {m['type']}")
         print(f"    Nguon nhan dang hang: {source}")
+        print(f"    Module Manufacturer ID (SMBIOS): {m['manufacturer_id'] or 'Khong co'}")
+        print(f"    Serial Number (SMBIOS): {m['serial_number'] or 'Khong co'}")
+        if not usable_serial(m['serial_number']):
+            print("    ! Serial Number: thieu/placeholder, chua the doi chieu")
+        print(f"    Module Product ID (SMBIOS): {m['module_product_id'] or 'Khong co'}")
         if reported_brand and catalog_brand and reported_brand.casefold() != catalog_brand.casefold():
             # Micron-made Crucial modules are a legitimate special case.
             if {reported_brand.casefold(), catalog_brand.casefold()} != {"micron", "crucial"}:
@@ -225,10 +259,14 @@ def scan(fixture=None):
         print(f"    Model: {m['part'] or '?'}")
         if str(brand).strip().lower() == "kingston":
             print(f"    Kingston family: {kingston_family(m['part'])}")
-        print(f"    SPD/BIOS: {m['manufacturer']} | rated {m['speed'] or '?'} | active {m['configured_speed'] or '?'} MT/s")
+        print(f"    SMBIOS: {m['manufacturer']} | rated {m['speed'] or '?'} | active {m['configured_speed'] or '?'} MT/s")
         print(f"    Danh muc: {tag} | {detail}")
         for issue in issues:
             print(f"    ! BAT THUONG: {issue}")
+    duplicates = duplicate_serial_groups(modules)
+    for serial, slots in duplicates.items():
+        print(f"\n! SERIAL TRUNG NHAU: {serial} tai {', '.join(slots)}")
+        print("  CAN KIEM TRA SPD/TEM. Serial trung lap khong chung minh RAM gia.")
     print("\nXAC THUC: CHUA THE KET LUAN RAM CHINH HANG QUA SMBIOS.")
     print("SUC KHOE: CHUA TEST O DAY. Chon Memtester/Memtest86+ tren menu de kiem tra loi.")
     print("Khong tao file HTML/JSON va khong ghi vao SSD.")
