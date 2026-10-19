@@ -45,6 +45,7 @@ def parse_dmi(text):
             "slot": fields.get("Locator", "?"),
             "part": fields.get("Part Number", "").strip(),
             "manufacturer": fields.get("Manufacturer", "?"),
+            "manufacturer_id": fields.get("Module Manufacturer ID", ""),
             "capacity_gb": cap,
             "type": fields.get("Type", "?"),
             "form_factor": fields.get("Form Factor", "?"),
@@ -69,17 +70,52 @@ def load_catalog():
                 counts[tier] += 1
     return db, counts
 
+# SMBIOS numeric vendor strings come from JEDEC module manufacturer IDs.
+# Decode only observed, unambiguous identifiers. This is not proof of authenticity.
+JEDEC_PREFIXES = {
+    "0198": "Kingston",
+    "80CE": "Samsung",
+    "802C": "Micron",
+    "80AD": "SK hynix",
+}
+JEDEC_BANK_HEX = {
+    (2, "98"): "Kingston",
+    (1, "CE"): "Samsung",
+    (1, "2C"): "Micron",
+    (1, "AD"): "SK hynix",
+}
+
+
+def recognized_brand(mod):
+    raw = mod["manufacturer"].strip()
+    v = raw.upper().replace(" ", "")
+    for code, brand in JEDEC_PREFIXES.items():
+        if re.fullmatch(re.escape(code) + r"(?:0{0,12})", v):
+            return brand, f"SMBIOS numeric ID {code}"
+    m = re.search(r"Bank\s+(\d+)\s*,\s*Hex\s+0x([A-Fa-f0-9]{2})",
+                  mod.get("manufacturer_id", ""), re.I)
+    if m:
+        brand = JEDEC_BANK_HEX.get((int(m[1]), m[2].upper()))
+        if brand:
+            return brand, "SMBIOS Module Manufacturer ID"
+    aliases = (
+        ("KINGSTON", "Kingston"), ("SAMSUNG", "Samsung"),
+        ("SK HYNIX", "SK hynix"), ("SKHYNIX", "SK hynix"),
+        ("HYNIX", "SK hynix"), ("MICRON", "Micron"),
+        ("CRUCIAL", "Crucial"), ("CORSAIR", "Corsair"),
+        ("G.SKILL", "G.Skill"), ("ADATA", "ADATA"),
+        ("TEAMGROUP", "TeamGroup"), ("TRANSCEND", "Transcend"),
+        ("NANYA", "Nanya"), ("APACER", "Apacer"), ("RAMAXEL", "Ramaxel"),
+    )
+    for key, brand in aliases:
+        if key in raw.upper():
+            return brand, "SMBIOS manufacturer text"
+    return "", ""
+
+
 def guess_brand(mod):
-    vendor = mod["manufacturer"].upper()
-    if vendor.startswith("80CE"):
-        return "Samsung"
-    names = ("Kingston", "Samsung", "SK hynix", "Hynix", "Crucial", "Micron",
-             "Corsair", "G.Skill", "ADATA", "XPG", "Transcend", "TeamGroup",
-             "Patriot", "PNY", "Nanya", "Apacer", "Ramaxel", "Kingbank")
-    for name in names:
-        if name.upper() in vendor:
-            return name
-    return "Unknown"
+    """Backward-compatible brand guess; otherwise return Unknown."""
+    return recognized_brand(mod)[0] or "Unknown"
 
 
 def kingston_family(part):
@@ -155,8 +191,23 @@ def scan(fixture=None):
     for i, m in enumerate(modules, 1):
         tag, detail, issues = assess(m, db)
         hit = db.get(normalize(m["part"]))
-        brand = hit[1].get("brand") if hit else guess_brand(m)
+        catalog_brand = str(hit[1].get("brand") or "").strip() if hit else ""
+        reported_brand, evidence = recognized_brand(m)
+        if reported_brand:
+            brand = reported_brand
+            source = evidence
+        elif catalog_brand:
+            brand = catalog_brand
+            source = "offline catalog ONLY (not verified by BIOS/SPD)"
+        else:
+            brand = "UNKNOWN"
+            source = "No supported manufacturer ID or matching catalog"
         print(f"[{i}] Khe {m['slot']} | {brand} | {m['capacity_gb']:g} GB | {m['type']}")
+        print(f"    Nguon nhan dang hang: {source}")
+        if reported_brand and catalog_brand and reported_brand.casefold() != catalog_brand.casefold():
+            # Micron-made Crucial modules are a legitimate special case.
+            if {reported_brand.casefold(), catalog_brand.casefold()} != {"micron", "crucial"}:
+                print(f"    ! KHAI BAO MAU THUAN: SMBIOS={reported_brand}, catalog={catalog_brand}")
         print(f"    Model: {m['part'] or '?'}")
         if str(brand).strip().lower() == "kingston":
             print(f"    Kingston family: {kingston_family(m['part'])}")
