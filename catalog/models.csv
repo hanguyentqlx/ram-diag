@@ -1,0 +1,7 @@
+brand,part_number,capacity_gb,memory_type,form_factor,rated_mt_s,ranks,voltage_v,source_url,source_note
+Samsung,M471A5244CB0-CWE,4,DDR4,SODIMM,3200,1,1.2,https://www.samsung.com/semiconductor/,Samsung model identifier - not authenticity certification
+Kingston,KVR32S22S8/8,8,DDR4,SODIMM,3200,1,1.2,https://www.kingston.com/en/memory,Kingston ValueRAM model
+Kingston,KVR32S22D8/16,16,DDR4,SODIMM,3200,2,1.2,https://www.kingston.com/en/memory,Kingston ValueRAM model
+Kingston,KVR32S22S8/16,16,DDR4,SODIMM,3200,1,1.2,https://www.kingston.com/en/memory,Kingston ValueRAM model
+Kingston,KVR32S22D8/32,32,DDR4,SODIMM,3200,2,1.2,https://www.kingston.com/en/memory,Kingston ValueRAM model
+Kingston,ACR32D4S2S1ME-8,8,DDR4,SODIMM,3200,1,1.2,https://www.memorybenchmark.net/,Kingston OEM code observed in community - not manufacturer verified
