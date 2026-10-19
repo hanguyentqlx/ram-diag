@@ -1,38 +1,94 @@
 #!/usr/bin/env bash
-set -uo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# RAM-DIAG text UI for bootable SystemRescue; no SSD/HDD test operations.
+set -u
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT" || exit 1
-available_mb() { awk '/^MemAvailable:/{print int($2 / 1024)}' /proc/meminfo; }
-while true; do
-  echo; echo '=== RAM-DIAG USB | CLI ==='
-  echo '1. Nhan dang RAM / tra ma offline'
-  echo '2. Thong ke co so du lieu'
-  echo '3. Memtester (2 vong, RAM dang trong)'
-  echo '4. Stressapptest (15 phut)'
-  echo '5. Huong dan Memtest86+'
-  echo '0. Thoat'
-  read -r -p 'Chon: ' opt || exit 0
-  case "$opt" in
-    1) python3 "$ROOT/ramdiag.py" scan ;;
-    2) python3 "$ROOT/ramdiag.py" stats ;;
-    3|4)
-      [[ $EUID -eq 0 ]] || { echo 'Hay chay: sudo bash menu.sh'; continue; }
-      tool=memtester
-      [[ $opt == 4 ]] && tool=stressapptest
-      command -v "$tool" >/dev/null || { echo "Thieu $tool trong Linux Live."; continue; }
-      avail=$(available_mb); size=$((avail / 2))
-      (( size > 4096 )) && size=4096
-      (( size >= 256 )) || { echo 'Khong du bo nho trong'; continue; }
-      if [[ $opt == 3 ]]; then
-        echo "Se test $size MiB x 2 vong."; read -r -p 'Bat dau? [y/N] ' yes
-        [[ $yes =~ ^[yY]$ ]] && memtester "${size}M" 2
-      else
-        echo "Stress $size MiB trong 900 giay. Cam sac, dam bao tan nhiet."
-        read -r -p 'Bat dau? [y/N] ' yes
-        [[ $yes =~ ^[yY]$ ]] && stressapptest -M "$size" -s 900 -W
-      fi ;;
-    5) echo 'Memtest86+ phai boot rieng tu Ventoy/SystemRescue. Chay >=4 passes. CLI Linux khong test duoc toan bo RAM.' ;;
-    0) exit 0 ;;
-    *) echo 'Khong hop le.' ;;
-  esac
+
+available_mb() {
+    awk '/^MemAvailable:/{print int($2 / 1024)}' /proc/meminfo
+}
+test_size_mb() {
+    local avail max
+    avail=$(available_mb)
+    # Use at most half available RAM and reserve extra 512MiB for Linux.
+    max=$(( (avail - 512) / 2 ))
+    (( max > 4096 )) && max=4096
+    if (( max < 256 )); then
+        echo "Khong du RAM trong de test an toan." >&2
+        return 1
+    fi
+    printf '%d\n' "$max"
+}
+ask() {
+    local answer
+    read -r -p 'Bat dau kiem tra? [y/N] ' answer || return 1
+    [[ "$answer" =~ ^[yY]$ ]]
+}
+run_memtester() {
+    local loops="$1" size
+    if (( EUID != 0 )); then
+        echo 'Hay chay voi quyen root: sudo bash menu.sh'
+        return
+    fi
+    if ! command -v memtester >/dev/null 2>&1; then
+        echo 'Khong tim thay memtester.'
+        return
+    fi
+    size=$(test_size_mb) || return
+    echo "Memtester: ${size} MiB x ${loops} luot; khong test toan bo RAM."
+    ask && memtester "${size}M" "$loops"
+}
+run_stress() {
+    local size
+    if (( EUID != 0 )); then
+        echo 'Hay chay voi quyen root: sudo bash menu.sh'
+        return
+    fi
+    if ! command -v stressapptest >/dev/null 2>&1; then
+        echo 'Khong tim thay stressapptest.'
+        return
+    fi
+    size=$(test_size_mb) || return
+    echo "Stressapptest: ${size} MiB, 15 phut. Cam sac, giu may mat."
+    ask && stressapptest -M "$size" -s 900 -W
+}
+show_spd() {
+    echo "SPD raw co the bi BIOS khoa, do do ket qua co the khong co."
+    if command -v decode-dimms >/dev/null 2>&1; then
+        decode-dimms
+    elif command -v dmidecode >/dev/null 2>&1; then
+        echo "Khong co decode-dimms; chi hien SMBIOS (khong phai SPD raw)."
+        dmidecode -t 17 | grep -E '(^Handle|Size:|Type:|Speed:|Manufacturer:|Part Number:|Configured Memory Speed:|Serial Number:|Rank:)' || true
+    else
+        echo "Khong co cong cu doc RAM."
+    fi
+}
+while :; do
+    clear 2>/dev/null || true
+    printf '%s\n' '===================================='
+    printf '%s\n' '           RAM-DIAG USB'
+    printf '%s\n' '          RAM TEST TOOL'
+    printf '%s\n' '===================================='
+    printf '%s\n' '1. Nhan dang RAM va tra ma OEM offline'
+    printf '%s\n' '2. Doc thong tin SPD/SMBIOS'
+    printf '%s\n' '3. Test RAM nhanh (memtester x2)'
+    printf '%s\n' '4. Test RAM dai (memtester x5)'
+    printf '%s\n' '5. Stress test RAM 15 phut'
+    printf '%s\n' '6. Thong ke catalog RAM offline'
+    printf '%s\n' '0. Thoat menu'
+    echo
+    read -r -p 'Chon [0-6]: ' selection || exit 0
+    echo
+    case "$selection" in
+        1) python3 "$ROOT/ramdiag.py" scan ;;
+        2) show_spd ;;
+        3) run_memtester 2 ;;
+        4) run_memtester 5 ;;
+        5) run_stress ;;
+        6) python3 "$ROOT/ramdiag.py" stats ;;
+        0) exit 0 ;;
+        *) echo 'Hay chon so tu 0 den 6.' ;;
+    esac
+    echo
+    read -r -p 'Nhan Enter de quay lai menu...' _ || exit 0
 done
