@@ -53,14 +53,10 @@ run_stress() {
     ask && stressapptest -M "$size" -s 900 -W
 }
 show_spd() {
-    echo "SPD raw co the bi BIOS khoa, do do ket qua co the khong co."
-    if command -v decode-dimms >/dev/null 2>&1; then
-        decode-dimms
-    elif command -v dmidecode >/dev/null 2>&1; then
-        echo "Khong co decode-dimms; chi hien SMBIOS (khong phai SPD raw)."
-        dmidecode -t 17 | grep -E '(^Handle|Size:|Type:|Speed:|Manufacturer:|Part Number:|Configured Memory Speed:|Serial Number:|Rank:)' || true
+    if [[ -f "$ROOT/spdcheck.py" ]]; then
+        python3 "$ROOT/spdcheck.py"
     else
-        echo "Khong co cong cu doc RAM."
+        echo "Thieu spdcheck.py: hay cap nhat repo va build lai ISO."
     fi
 }
 while :; do
