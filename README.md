@@ -1,36 +1,48 @@
-# RAM-DIAG USB — CLI
+# RAM-DIAG — USB RAM test CLI
 
-Bản CLI tối giản, **không tạo HTML**, không cần ghi log lên SSD. Mã RAM được đối chiếu offline bằng `catalog/*.csv`. Chưa phải danh mục đầy đủ mọi Kingston/OEM; thiếu mã không có nghĩa là hàng giả. Phần quét SMBIOS không kiểm tra lỗi RAM.
+RAM-DIAG hien menu chu, chon 1–6, khong tao HTML. Nhận dạng RAM/Kingston OEM bằng cơ sở dữ liệu offline khởi đầu, kiểm tra với memtester/stressapptest. **Chưa có toàn bộ mã RAM của mọi hãng. SPD/SMBIOS không thể xác thực 100% hàng chính hãng.**
 
-## Ubuntu (thử ngay)
+## Boot USB: tự hiện menu, không gõ lệnh
+
+ISO gốc SystemRescue 13.02 cần tải từ https://www.system-rescue.org/Download/ vào `~/ramdiag-usb/systemrescue-13.02-amd64.iso`. USB Ventoy phải đã cài và có phân vùng dữ liệu `Ventoy`.
+
+Trên Ubuntu máy chuẩn bị USB:
 
 ```bash
 cd ~/ram-diag
-git pull
-sudo python3 ramdiag.py scan
+git pull --ff-only
+sudo apt update
+sudo apt install -y xorriso squashfs-tools curl python3
+bash build-auto-iso.sh
+```
+
+Tạo file `~/ramdiag-usb/RAM-DIAG-AUTO.iso` bằng công cụ sysrescue-customize chính thức. Script này **không format USB** và không sửa ISO gốc. Cần vài GB ổ trống để xây dựng ISO.
+
+Sau đó (chỉ khi USB Ventoy đã được nhận diện đúng và có nhãn `Ventoy`):
+
+```bash
+findmnt -S /dev/disk/by-label/Ventoy || true
+sudo mkdir -p /mnt/ramdiag-usb
+# Chỉ mount nếu USB chưa được mount ở nơi khác:
+sudo mount /dev/disk/by-label/Ventoy /mnt/ramdiag-usb
+sudo cp ~/ramdiag-usb/RAM-DIAG-AUTO.iso /mnt/ramdiag-usb/
+sync
+```
+
+Nếu USB đã tự mount dưới /media, dùng đường dẫn đó thay vì mount lại. Chọn `RAM-DIAG-AUTO.iso` tại Ventoy. Menu RAM-DIAG được tự chạy trên tty1; các file chương trình nằm bên trong ISO nên không cần mount USB hay gõ lệnh. Nếu tty1 không hiện, có thể chuyển bằng Alt+F1. Hãy thử boot trên Dell trước khi dựa vào USB trên máy khác.
+
+Bài test gần toàn bộ RAM cần boot Memtest86+ riêng vì Linux giữ một phần RAM. Có thể thêm ảnh ISO Memtest86+ vào Ventoy.
+
+## Dùng trên Ubuntu bình thường
+
+```bash
+cd ~/ram-diag && git pull --ff-only
 sudo bash menu.sh
 ```
 
-## Tạo USB boot để chạy trên nhiều PC x86
+## Mức độ đánh giá
 
-Chuẩn bị USB >= 8 GB, backup dữ liệu USB. **Ventoy sẽ xóa dữ liệu USB khi cài lần đầu.** Kiểm tra chính xác bằng `lsblk -o NAME,SIZE,MODEL,TRAN,MOUNTPOINTS` trước khi cài Ventoy, không được chọn nhầm SSD `/dev/nvme0n1`.
-
-1. Tải Ventoy tại https://www.ventoy.net/en/download.html và SystemRescue ISO tại https://www.system-rescue.org/Download/.
-2. Trên Ubuntu, giải nén Ventoy và chạy `sudo ./VentoyGUI.x86_64`. Chọn **đúng ổ USB**, cài Ventoy. Có thể cần chỉnh Secure Boot/UEFI để boot được trên một số máy.
-3. Chép ISO SystemRescue vào phân vùng dữ liệu Ventoy. **Chép cả thư mục `ram-diag` từ GitHub vào cùng phân vùng**. Không cần cài phần mềm vào SSD máy được kiểm tra.
-4. Boot máy cần kiểm tra từ USB (Dell thường nhấn F12) > chọn SystemRescue.
-5. Trong Terminal SystemRescue, tìm nơi USB đang được mount: `lsblk -f`; nếu chưa mount: `mkdir -p /mnt/ventoy && mount /dev/disk/by-label/Ventoy /mnt/ventoy`. Nếu Ventoy được gắn nhãn khác, dùng đúng đường dẫn phân vùng được `lsblk -f` trả về. Nếu hệ thống đã tự mount, dùng đường dẫn đó thay cho `/mnt/ventoy`.
-6. Chạy `cd /mnt/ventoy/ram-diag && bash menu.sh` (Terminal của SystemRescue thường đã là root); nếu không phải root, dùng `sudo bash menu.sh`.
-
-Để kiểm tra gần toàn bộ RAM thay vì một phần RAM còn trống, khởi động Memtest86+ từ menu boot SystemRescue hoặc thêm ISO Memtest86+ riêng vào Ventoy. **Không thể chạy Memtest86+ đầy đủ bên trong phiên Linux Live đang dùng RAM**.
-
-Chức năng menu:
-- 1: Nhận dạng RAM, đối chiếu mã offline, chỉ in trên terminal.
-- 2: Thống kê các mã offline.
-- 3: Chạy memtester trên tối đa 1/2 RAM khả dụng, 2 vòng, xác nhận trước.
-- 4: Stressapptest 15 phút, xác nhận trước.
-- 5: Hướng dẫn boot Memtest86+.
-
-**Không có công cụ phần mềm nào đảm bảo xác thực 100% RAM Kingston hay RAM OEM chính hãng.** Cần so thông tin SPD với nhãn vật lý và hỏi nhà sản xuất nếu nghi giả.
-
-`ramdiag.py scan` không ghi file và không ghi dữ liệu lên SSD. `memtester` và `stressapptest` kiểm tra trong RAM và tạo tải CPU/RAM.
+- Listed code: chỉ xác định mã có trong catalog, không chứng minh chính hãng.
+- Unknown code: mã chưa có trong database, không có nghĩa RAM giả.
+- Memtester/Stressapptest: test vùng RAM Linux cấp phát, không thay thế Memtest86+ boot độc lập.
+- Công cụ không ghi đè dữ liệu trên SSD/HDD.
