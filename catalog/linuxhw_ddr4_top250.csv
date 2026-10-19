@@ -1,0 +1,46 @@
+brand,part_number,capacity_gb,memory_type,form_factor,observed_speed_mt_s,observed_count,seen_on_oem,source_url,source_type
+Kingston,KF3200C16D4/16GX,16,DDR4,DIMM,3200,199,MSI,https://github.com/linuxhw/DMI,community_top250
+Kingston,KF3200C16D4/8GX,8,DDR4,DIMM,3600,228,MSI,https://github.com/linuxhw/DMI,community_top250
+Kingston,KHX2400C15/8G,8,DDR4,DIMM,3400,258,MSI,https://github.com/linuxhw/DMI,community_top250
+Kingston,KHX2666C16/8G,8,DDR4,DIMM,3466,308,Gigabyte Technology,https://github.com/linuxhw/DMI,community_top250
+Kingston,KHX3200C16D4/16GX,16,DDR4,DIMM,3600,203,ASUSTek Computer,https://github.com/linuxhw/DMI,community_top250
+Kingston,KHX3200C16D4/8GX,8,DDR4,DIMM,3733,311,MSI,https://github.com/linuxhw/DMI,community_top250
+Micron,16ATF2G64HZ-2G6E1,16,DDR4,SODIMM,2667,141,Fujitsu,https://github.com/linuxhw/DMI,community_top250
+Micron,4ATF1G64HZ-3G2E1,8,DDR4,SODIMM,3200,845,ASUSTek Computer;Lenovo,https://github.com/linuxhw/DMI,community_top250
+Micron,4ATF1G64HZ-3G2E2,8,DDR4,SODIMM,3200,324,Gigabyte Technology,https://github.com/linuxhw/DMI,community_top250
+Micron,4ATF1G64HZ-3G2F1,8,DDR4,SODIMM,3200,347,ASUSTek Computer,https://github.com/linuxhw/DMI,community_top250
+Micron,4ATF51264HZ-2G3B1,4,DDR4,SODIMM,3200,316,Acer,https://github.com/linuxhw/DMI,community_top250
+Micron,4ATF51264HZ-2G6E1,4,DDR4,SODIMM,2667,589,Hewlett-Packard,https://github.com/linuxhw/DMI,community_top250
+Micron,4ATF51264HZ-3G2J1,4,DDR4,SODIMM,3200,583,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Micron,4ATS1G64HZ-2G6E1,8,DDR4,SODIMM,2667,168,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Micron,4ATS2G64HZ-3G2B1,16,DDR4,SODIMM,3200,153,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Micron,8ATF1G64HZ-2G3B1,8,DDR4,SODIMM,2400,180,Hewlett-Packard,https://github.com/linuxhw/DMI,community_top250
+Micron,8ATF1G64HZ-2G6E1,8,DDR4,SODIMM,2667,348,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Micron,8ATF1G64HZ-3G2J1,8,DDR4,SODIMM,3200,418,ASUSTek Computer,https://github.com/linuxhw/DMI,community_top250
+Micron,8ATF1G64HZ-3G2R1,8,DDR4,SODIMM,3200,376,Hewlett-Packard,https://github.com/linuxhw/DMI,community_top250
+Samsung,M378A1K43CB2-CTD,8,DDR4,DIMM,3266,138,ASUSTek Computer,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A1G43DB0-CPB,8,DDR4,SODIMM,3200,149,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A1G44AB0-CWE,8,DDR4,SODIMM,3200,1748,Lenovo;HUAWEI,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A1G44BB0-CWE,8,DDR4,SODIMM,3200,566,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A1K43BB0-CPB,8,DDR4,SODIMM,2133,266,Dell,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A1K43BB1-CRC,8,DDR4,SODIMM,2667,529,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A1K43BB1-CTD,8,DDR4,SODIMM,2667,181,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A1K43CB1-CRC,8,DDR4,SODIMM,2667,777,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A1K43CB1-CTD,8,DDR4,SODIMM,2667,732,MSI,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A1K43DB1-CTD,8,DDR4,SODIMM,2667,632,ASUSTek Computer,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A1K43DB1-CWE,8,DDR4,SODIMM,3200,803,ASUSTek Computer,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A1K43EB1-CWE,8,DDR4,SODIMM,3200,826,ASUSTek Computer,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A2G43AB2-CWE,16,DDR4,SODIMM,3200,228,Hewlett-Packard,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A2G44AM0-CWE,16,DDR4,SODIMM,3200,261,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A2K43CB1-CRC,16,DDR4,SODIMM,2667,326,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A2K43CB1-CTD,16,DDR4,SODIMM,,370,Dell,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A2K43DB1-CTD,16,DDR4,SODIMM,2667,282,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A2K43DB1-CWE,16,DDR4,SODIMM,3200,390,Dell,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A2K43EB1-CWE,16,DDR4,SODIMM,3200,169,ASUSTek Computer,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A4G43AB1-CWE,32,DDR4,SODIMM,3200,187,AZW,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A4G43MB1-CTD,32,DDR4,SODIMM,2667,203,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A5143EB0-CPB,4,DDR4,SODIMM,2133,151,ASUSTek Computer,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A5244BB0-CRC,4,DDR4,SODIMM,2667,219,Hewlett-Packard,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A5244CB0-CRC,4,DDR4,SODIMM,2667,847,Lenovo,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A5244CB0-CTD,4,DDR4,SODIMM,3266,1513,Acer;Lenovo,https://github.com/linuxhw/DMI,community_top250
+Samsung,M471A5244CB0-CWE,4,DDR4,SODIMM,3200,1046,ASUSTek Computer;Lenovo,https://github.com/linuxhw/DMI,community_top250
