@@ -120,12 +120,14 @@ JEDEC_PREFIXES = {
     "80CE": "Samsung",
     "802C": "Micron",
     "80AD": "SK hynix",
+    "04CB": "ADATA",
 }
 JEDEC_BANK_HEX = {
     (2, "98"): "Kingston",
     (1, "CE"): "Samsung",
     (1, "2C"): "Micron",
     (1, "AD"): "SK hynix",
+    (5, "CB"): "ADATA",
 }
 
 
