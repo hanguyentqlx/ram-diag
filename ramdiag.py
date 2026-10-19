@@ -12,6 +12,8 @@ BASE = pathlib.Path(__file__).resolve().parent
 CATALOG_FILES = [
     ("CURATED", BASE / "catalog" / "models.csv"),
     ("COMMUNITY", BASE / "catalog" / "observed_linuxhw.csv"),
+    ("COMMUNITY", BASE / "catalog" / "linuxhw_ddr4_top250.csv"),
+    ("COMMUNITY", BASE / "catalog" / "observed_ddr4_full.csv"),
     ("COMMUNITY", BASE / "catalog" / "observed_oem.csv"),
 ]
 
