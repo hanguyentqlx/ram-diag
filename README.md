@@ -46,3 +46,22 @@ sudo bash menu.sh
 - Unknown code: mã chưa có trong database, không có nghĩa RAM giả.
 - Memtester/Stressapptest: test vùng RAM Linux cấp phát, không thay thế Memtest86+ boot độc lập.
 - Công cụ không ghi đè dữ liệu trên SSD/HDD.
+
+
+## DDR4 Kingston / Samsung / Micron / Crucial catalog
+
+Danh muc nho `catalog/linuxhw_ddr4_top250.csv` da duoc tich hop vao `ramdiag.py` (45 ma phan biet tu bang RAM pho bien cua linuxhw/DMI). Day la du lieu may tinh cong dong, KHONG phai catalog hang chinh thuc.
+
+De mo rong bang tat ca bao cao cong khai trong linuxhw/DMI tren Ubuntu co Internet (co the can nhieu GB va mat thoi gian):
+
+```bash
+cd ~/ram-diag
+git pull --ff-only
+git clone --depth 1 https://github.com/linuxhw/DMI.git ~/linuxhw-DMI
+python3 catalog_tools/import_ddr4_dmi.py --root ~/linuxhw-DMI --out catalog/observed_ddr4_full.csv
+python3 ramdiag.py stats
+```
+
+Sau khi nhap xong, ban phai **tao lai RAM-DIAG-AUTO.iso** va chep ISO moi len USB Ventoy, vi co so du lieu duoc nhung vao ISO khi build. Do not overwrite active ISO in place while booted from it.
+
+Gioi han: DMI reports khong bao phu tat ca ma OEM; ma OEM nhu ACR... chi duoc gan hang Kingston neu bao cao co ten hang, khong duoc suy dien qua tien to. Khong doc/luu serial tung may trong catalog, khong xac nhan chinh hang.
