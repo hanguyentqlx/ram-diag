@@ -81,6 +81,34 @@ def guess_brand(mod):
             return name
     return "Unknown"
 
+
+def kingston_family(part):
+    """Classify Kingston module identifiers conservatively; never authenticate by prefix."""
+    p = normalize(part)
+    if p.startswith("KVR"):
+        return "ValueRAM (KVR)"
+    if p.startswith("KSM"):
+        return "Server Premier (KSM)"
+    if p.startswith("KF"):
+        return "FURY (KF)"
+    if p.startswith(("KHX", "HX4")):
+        return "HyperX legacy (KHX/HX4)"
+    if p.startswith("CBD"):
+        return "Design-In (CBD)"
+    if p.startswith("ACR"):
+        return "OEM-style ACR (Acer family; unverified)"
+    if p.startswith("HP"):
+        return "OEM-style HP (association unverified)"
+    if p.startswith("MSI"):
+        return "OEM-style MSI (association unverified)"
+    if p.startswith(("LV", "RB", "SW", "TF")):
+        return "OEM-style other (unverified)"
+    if p.startswith("99"):
+        return "99*-style module/reference ID"
+    if p.startswith(("KTH", "KTD", "KTL", "KCP", "KTP")):
+        return "System-specific style (unverified)"
+    return "Other / needs review"
+
 def assess(mod, db):
     hit = db.get(normalize(mod["part"]))
     if hit is None:
@@ -130,6 +158,8 @@ def scan(fixture=None):
         brand = hit[1].get("brand") if hit else guess_brand(m)
         print(f"[{i}] Khe {m['slot']} | {brand} | {m['capacity_gb']:g} GB | {m['type']}")
         print(f"    Model: {m['part'] or '?'}")
+        if str(brand).strip().lower() == "kingston":
+            print(f"    Kingston family: {kingston_family(m['part'])}")
         print(f"    SPD/BIOS: {m['manufacturer']} | rated {m['speed'] or '?'} | active {m['configured_speed'] or '?'} MT/s")
         print(f"    Danh muc: {tag} | {detail}")
         for issue in issues:
@@ -152,6 +182,13 @@ def main():
     if args.action == "catalog":
         for part, (tier, data) in sorted(db.items()):
             print(f"[{tier}] {data.get('brand','?'):12} {part:30} {data.get('capacity_gb','?')} GB")
+    if args.action == "stats":
+        from collections import Counter
+        groups = Counter(kingston_family(part) for part, (_, row) in db.items()
+                         if str(row.get("brand", "")).strip().lower() == "kingston")
+        print("\\nKingston groups (classification by code pattern, not product verification):")
+        for group, count in groups.most_common():
+            print(f"  {group:48} {count:5}")
     print("Unlisted != counterfeit. Listed != authenticated.")
     return 0
 
