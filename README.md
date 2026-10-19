@@ -1,31 +1,36 @@
-# RAM-DIAG — RAM inventory and verification starter
+# RAM-DIAG USB — CLI
 
-Bộ công cụ đọc RAM bằng SMBIOS trên Linux, tra cứu một số mã RAM offline và xuất báo cáo HTML/JSON. Repo hiện chứa **bản bootstrap tối giản**, không phải bộ v0.3 đầy đủ, không chứa toàn bộ mã Kingston/OEM và chưa phải USB tự boot.
+Bản CLI tối giản, **không tạo HTML**, không cần ghi log lên SSD. Mã RAM được đối chiếu offline bằng `catalog/*.csv`. Chưa phải danh mục đầy đủ mọi Kingston/OEM; thiếu mã không có nghĩa là hàng giả. Phần quét SMBIOS không kiểm tra lỗi RAM.
 
-## Chạy trên Ubuntu (máy hiện tại)
-
-```bash
-sudo apt update
-sudo apt install -y git python3 dmidecode
-git clone https://github.com/hanguyentqlx/ram-diag.git
-cd ram-diag
-sudo python3 ramdiag.py
-```
-
-Báo cáo lưu trong `reports/YYYYMMDD-HHMMSS/report.html` và `report.json`.
-
-## Kiểm tra RAM bằng memtester (riêng biệt)
+## Ubuntu (thử ngay)
 
 ```bash
-sudo apt install -y memtester
-free -h
-sudo memtester 1G 3
+cd ~/ram-diag
+git pull
+sudo python3 ramdiag.py scan
+sudo bash menu.sh
 ```
 
-Thử 1 GiB chỉ kiểm tra vùng RAM được cấp phát. Muốn kiểm tra gần toàn bộ RAM, boot Memtest86+ từ USB (ví dụ Ventoy + SystemRescue/Memtest86+). Cài Ventoy lên USB sẽ xóa dữ liệu USB, không được chọn nhầm ổ SSD.
+## Tạo USB boot để chạy trên nhiều PC x86
 
-## Giới hạn nhận dạng
+Chuẩn bị USB >= 8 GB, backup dữ liệu USB. **Ventoy sẽ xóa dữ liệu USB khi cài lần đầu.** Kiểm tra chính xác bằng `lsblk -o NAME,SIZE,MODEL,TRAN,MOUNTPOINTS` trước khi cài Ventoy, không được chọn nhầm SSD `/dev/nvme0n1`.
 
-Ví dụ danh mục gồm Kingston OEM `ACR32D4S2S1ME-8`, Samsung `M471A5244CB0-CWE`. Tên hãng/mã từ BIOS chỉ là dữ liệu báo cáo; có thể bị sai/giả mạo. **Tra được mã KHÔNG phải chứng nhận hàng thật; không tra được mã KHÔNG phải chứng nhận hàng giả.** Cần thêm dữ liệu SPD, kiểm tra vật lý và hãng sản xuất để xác minh.
+1. Tải Ventoy tại https://www.ventoy.net/en/download.html và SystemRescue ISO tại https://www.system-rescue.org/Download/.
+2. Trên Ubuntu, giải nén Ventoy và chạy `sudo ./VentoyGUI.x86_64`. Chọn **đúng ổ USB**, cài Ventoy. Có thể cần chỉnh Secure Boot/UEFI để boot được trên một số máy.
+3. Chép ISO SystemRescue vào phân vùng dữ liệu Ventoy. **Chép cả thư mục `ram-diag` từ GitHub vào cùng phân vùng**. Không cần cài phần mềm vào SSD máy được kiểm tra.
+4. Boot máy cần kiểm tra từ USB (Dell thường nhấn F12) > chọn SystemRescue.
+5. Trong Terminal SystemRescue, tìm nơi USB đang được mount: `lsblk -f`; nếu chưa mount: `mkdir -p /mnt/ventoy && mount /dev/disk/by-label/Ventoy /mnt/ventoy`. Nếu Ventoy được gắn nhãn khác, dùng đúng đường dẫn phân vùng được `lsblk -f` trả về. Nếu hệ thống đã tự mount, dùng đường dẫn đó thay cho `/mnt/ventoy`.
+6. Chạy `cd /mnt/ventoy/ram-diag && bash menu.sh` (Terminal của SystemRescue thường đã là root); nếu không phải root, dùng `sudo bash menu.sh`.
 
-Repo này được khởi tạo để vượt qua lỗi tải file từ ChatGPT. Mã nguồn v0.3 đầy đủ vẫn chưa được đăng lên GitHub.
+Để kiểm tra gần toàn bộ RAM thay vì một phần RAM còn trống, khởi động Memtest86+ từ menu boot SystemRescue hoặc thêm ISO Memtest86+ riêng vào Ventoy. **Không thể chạy Memtest86+ đầy đủ bên trong phiên Linux Live đang dùng RAM**.
+
+Chức năng menu:
+- 1: Nhận dạng RAM, đối chiếu mã offline, chỉ in trên terminal.
+- 2: Thống kê các mã offline.
+- 3: Chạy memtester trên tối đa 1/2 RAM khả dụng, 2 vòng, xác nhận trước.
+- 4: Stressapptest 15 phút, xác nhận trước.
+- 5: Hướng dẫn boot Memtest86+.
+
+**Không có công cụ phần mềm nào đảm bảo xác thực 100% RAM Kingston hay RAM OEM chính hãng.** Cần so thông tin SPD với nhãn vật lý và hỏi nhà sản xuất nếu nghi giả.
+
+`ramdiag.py scan` không ghi file và không ghi dữ liệu lên SSD. `memtester` và `stressapptest` kiểm tra trong RAM và tạo tải CPU/RAM.
