@@ -32,28 +32,42 @@ def size_gb(value):
     return qty / 1024 if unit == "MB" else qty * 1024 if unit == "TB" else qty
 
 def parse_dmi(text):
-    result = []
-    for chunk in re.split(r"(?=^Handle\s+0x[\da-fA-F]+,\s+DMI type 17,)", text, flags=re.M):
-        if not re.search(r"^Handle\s+0x[\da-fA-F]+,\s+DMI type 17,", chunk, flags=re.M):
-            continue
-        fields = dict((k.strip(), v.strip()) for k, v in re.findall(
-            r"^\s{2,}([A-Za-z][A-Za-z0-9 /()_-]+):\s*(.*?)\s*$", chunk, flags=re.M))
-        cap = size_gb(fields.get("Size"))
-        if cap is None:
-            continue
-        result.append({
+    """Read DMI Type 17 records line-by-line with relaxed whitespace."""
+    modules = []
+    fields = None
+
+    def finish():
+        if fields is None:
+            return
+        capacity = size_gb(fields.get("Size"))
+        if capacity is None:
+            return
+        modules.append({
             "slot": fields.get("Locator", "?"),
             "part": fields.get("Part Number", "").strip(),
             "manufacturer": fields.get("Manufacturer", "?"),
             "manufacturer_id": fields.get("Module Manufacturer ID", ""),
-            "capacity_gb": cap,
+            "capacity_gb": capacity,
             "type": fields.get("Type", "?"),
             "form_factor": fields.get("Form Factor", "?"),
             "speed": number(fields.get("Speed")),
             "configured_speed": number(fields.get("Configured Memory Speed")),
             "ranks": number(fields.get("Rank")),
         })
-    return result
+
+    for line in text.splitlines():
+        header = re.match(r"^\s*Handle\s+0x[0-9a-fA-F]+\s*,\s*DMI\s+type\s+(\d+)\b",
+                          line, re.I)
+        if header:
+            finish()
+            fields = {} if header.group(1) == "17" else None
+            continue
+        if fields is None or not line[:1].isspace() or ":" not in line:
+            continue
+        key, value = line.strip().split(":", 1)
+        fields[key.strip()] = value.strip()
+    finish()
+    return modules
 
 def load_catalog():
     db = {}
@@ -186,7 +200,7 @@ def scan(fixture=None):
     print(f"So thanh: {len(modules)} | Tong: {sum(x['capacity_gb'] for x in modules):g} GB")
     print(f"Database offline: {len(db)} ma ({counts['CURATED']} curated, {counts['COMMUNITY']} observed)\n")
     if not modules:
-        print("Khong thay DIMM tren SMBIOS. May co the chan thong tin RAM.")
+        print("Khong nhan duoc DIMM tu dmidecode. Hay kiem tra: sudo dmidecode -t 17")
         return 2
     for i, m in enumerate(modules, 1):
         tag, detail, issues = assess(m, db)
