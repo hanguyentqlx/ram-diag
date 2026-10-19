@@ -1,0 +1,8 @@
+brand,part_number,capacity_gb,memory_type,form_factor,observed_speed_mt_s,observed_count,seen_on_oem,source_url,source_type
+Samsung,M471A5244CB0-CTD,4,DDR4,SODIMM,3266,1300,Acer,https://github.com/linuxhw/DMI,community_dmi_observation
+SK hynix,HMA81GS6AFR8N-UH,8,DDR4,SODIMM,2667,1294,Dell,https://github.com/linuxhw/DMI,community_dmi_observation
+Samsung,M471A1G44AB0-CWE,8,DDR4,SODIMM,3200,1190,Lenovo,https://github.com/linuxhw/DMI,community_dmi_observation
+Samsung,M471B5273DH0-CH9,4,DDR3,SODIMM,1334,1172,HP,https://github.com/linuxhw/DMI,community_dmi_observation
+Samsung,M471B5173DB0-YK0,4,DDR3,SODIMM,1600,1137,Dell,https://github.com/linuxhw/DMI,community_dmi_observation
+Samsung,M471B5173QH0-YK0,4,DDR3,SODIMM,1600,1047,Lenovo,https://github.com/linuxhw/DMI,community_dmi_observation
+Kingston,ACR32D4S2S1ME-8,8,DDR4,SODIMM,3200,,Acer,https://www.memorybenchmark.net/,community_oem_listing
