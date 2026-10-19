@@ -1,31 +1,31 @@
-# RAM-DIAG v0.3 — Offline RAM Diagnostic
+# RAM-DIAG — RAM inventory and verification starter
 
-Bộ công cụ kiểm tra thông tin RAM trên Ubuntu/SystemRescue (Linux Live), tra mã RAM Kingston/OEM và các hãng khác bằng dữ liệu offline, kiểm tra RAM bằng memtester/stressapptest và lưu báo cáo HTML/JSON.
+Bộ công cụ đọc RAM bằng SMBIOS trên Linux, tra cứu một số mã RAM offline và xuất báo cáo HTML/JSON. Repo hiện chứa **bản bootstrap tối giản**, không phải bộ v0.3 đầy đủ, không chứa toàn bộ mã Kingston/OEM và chưa phải USB tự boot.
 
-**Lưu ý:** Đây là v0.3 starter, chưa phải USB boot hoàn chỉnh và **chưa có toàn bộ mã RAM**. Tra được mã RAM không chứng minh hàng chính hãng; thiếu mã trong DB không có nghĩa là RAM giả.
-
-## Tải và chạy trên Ubuntu 24.04
+## Chạy trên Ubuntu (máy hiện tại)
 
 ```bash
 sudo apt update
-sudo apt install -y git python3 dmidecode i2c-tools memtester stressapptest xz-utils
+sudo apt install -y git python3 dmidecode
 git clone https://github.com/hanguyentqlx/ram-diag.git
 cd ram-diag
-bash extract-source.sh
-python3 -m unittest discover -s tests -v
-python3 ramdiag.py stats
-sudo bash menu.sh
+sudo python3 ramdiag.py
 ```
 
-`extract-source.sh` giải nén mã nguồn v0.3 từ `release/ramdiag-v0.3.tar.xz` vào thư mục repo. Script kiểm tra SHA-256 trước khi giải nén. Đừng chạy updater với sudo.
+Báo cáo lưu trong `reports/YYYYMMDD-HHMMSS/report.html` và `report.json`.
 
-Để mở rộng danh mục offline khi có Internet:
+## Kiểm tra RAM bằng memtester (riêng biệt)
 
 ```bash
-bash update-catalog.sh
-python3 ramdiag.py stats
+sudo apt install -y memtester
+free -h
+sudo memtester 1G 3
 ```
 
-Để làm USB: dùng Ventoy chứa SystemRescue ISO cùng thư mục RAM-DIAG đã giải nén. Xem `README-VI.md` sau khi giải nén. **Cài Ventoy sẽ xóa dữ liệu trên USB được chọn.**
+Thử 1 GiB chỉ kiểm tra vùng RAM được cấp phát. Muốn kiểm tra gần toàn bộ RAM, boot Memtest86+ từ USB (ví dụ Ventoy + SystemRescue/Memtest86+). Cài Ventoy lên USB sẽ xóa dữ liệu USB, không được chọn nhầm ổ SSD.
 
-Nguồn mã tham khảo: bộ RAM-DIAG v0.3 đã chạy 11/11 unit tests trên Python 3.
+## Giới hạn nhận dạng
+
+Ví dụ danh mục gồm Kingston OEM `ACR32D4S2S1ME-8`, Samsung `M471A5244CB0-CWE`. Tên hãng/mã từ BIOS chỉ là dữ liệu báo cáo; có thể bị sai/giả mạo. **Tra được mã KHÔNG phải chứng nhận hàng thật; không tra được mã KHÔNG phải chứng nhận hàng giả.** Cần thêm dữ liệu SPD, kiểm tra vật lý và hãng sản xuất để xác minh.
+
+Repo này được khởi tạo để vượt qua lỗi tải file từ ChatGPT. Mã nguồn v0.3 đầy đủ vẫn chưa được đăng lên GitHub.
