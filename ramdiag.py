@@ -186,7 +186,7 @@ def main():
         from collections import Counter
         groups = Counter(kingston_family(part) for part, (_, row) in db.items()
                          if str(row.get("brand", "")).strip().lower() == "kingston")
-        print("\\nKingston groups (classification by code pattern, not product verification):")
+        print("\nKingston groups (classification by code pattern, not product verification):")
         for group, count in groups.most_common():
             print(f"  {group:48} {count:5}")
     print("Unlisted != counterfeit. Listed != authenticated.")
